@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { RequestUrgency } from "@prisma/client";
+import { findMatchesForRequest } from "./matches";
 
 export async function createHelpRequest(data: {
   topic: string;
@@ -58,6 +59,9 @@ export async function createHelpRequest(data: {
         expiresAt: expiresAt
       }
     });
+
+    // Trigger Matchmaking
+    await findMatchesForRequest(request.id);
 
     return { success: true, requestId: request.id };
   } catch (error) {

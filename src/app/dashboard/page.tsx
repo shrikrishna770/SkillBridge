@@ -1,19 +1,28 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { DashboardNav } from "@/components/layout/DashboardNav";
-import { Sparkles, Users, Award, Zap, Clock, Tag } from "lucide-react";
+import { Sparkles, Users, Award, Zap, Clock, Tag, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
 import { getMyOpenRequests } from "@/actions/requests";
+import { MatchNotification } from "@/components/matches/MatchNotification";
+import { getIncomingMatches, respondToMatch, getActiveSessions } from "@/actions/matches";
+import { SessionCard } from "@/components/session/SessionCard";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [activeRequests, setActiveRequests] = useState<any[]>([]);
+  const [incomingMatches, setIncomingMatches] = useState<any[]>([]);
+  const [activeSessions, setActiveSessions] = useState<any[]>([]);
   const user = session?.user as any;
 
   useEffect(() => {
     if (session?.user) {
       getMyOpenRequests().then(setActiveRequests);
+      getIncomingMatches().then(setIncomingMatches);
+      getActiveSessions().then(setActiveSessions);
     }
   }, [session]);
 
@@ -51,6 +60,71 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* Active Sessions Section */}
+        {activeSessions.length > 0 && (
+          <div className="space-y-4">
+             <h2 className="text-xl font-bold flex items-center gap-2">
+               <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500" /> In-Progress Sessions
+             </h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               {activeSessions.map(session => (
+                 <SessionCard key={session.id} session={session} userId={user.id} />
+               ))}
+             </div>
+          </div>
+        )}
+
+        {/* Incoming Matches Section */}
+        {incomingMatches.length > 0 && (
+          <div className="space-y-4">
+             <h2 className="text-xl font-bold flex items-center gap-2">
+               <GraduationCap className="w-5 h-5 text-purple-400" /> Mentoring Opportunities
+             </h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               {incomingMatches.map(match => (
+                 <div key={match.id} className="premium-gradient p-[1px] rounded-2xl overflow-hidden">
+                   <div className="bg-zinc-950 p-6 space-y-4">
+                     <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center font-bold">
+                             {match.request.user.name[0]}
+                           </div>
+                           <div>
+                              <p className="text-sm font-bold">{match.request.user.name}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase">{match.request.topic}</p>
+                           </div>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-[10px] font-bold text-purple-400">Match Score</p>
+                           <p className="text-lg font-bold">{(match.score).toFixed(0)}%</p>
+                        </div>
+                     </div>
+                     <p className="text-sm italic text-muted-foreground line-clamp-2">
+                       "{match.request.context}"
+                     </p>
+                     <div className="flex gap-2">
+                        <Button 
+                          className="flex-1 h-9 text-xs font-bold" 
+                          variant="premium"
+                          onClick={() => respondToMatch(match.id, "ACCEPTED").then(() => window.location.reload())}
+                        >
+                          Accept
+                        </Button>
+                        <Button 
+                          className="flex-1 h-9 text-xs font-bold" 
+                          variant="ghost"
+                          onClick={() => respondToMatch(match.id, "DECLINED").then(() => setIncomingMatches(prev => prev.filter(m => m.id !== match.id)))}
+                        >
+                          Decline
+                        </Button>
+                     </div>
+                   </div>
+                 </div>
+               ))}
+             </div>
+          </div>
+        )}
+
         {/* Active Requests Section */}
         <div className="space-y-4">
           <h2 className="text-xl font-bold flex items-center gap-2">
@@ -73,6 +147,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-medium leading-relaxed italic line-clamp-2 transition-all">
                       "{req.context}"
                     </p>
+                    <MatchNotification requestId={req.id} />
                   </div>
                   <div className="pt-4 border-t border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold uppercase">

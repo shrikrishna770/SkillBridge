@@ -31,6 +31,7 @@ model User {
   learnerSessions Session[]    @relation("LearnerSessions")
   accounts        Account[]
   sessions        AuthSession[]
+  matchSuggestions MatchSuggestion[]
 }
 
 model Skill {
@@ -78,6 +79,7 @@ model HelpRequest {
   updatedAt   DateTime       @updatedAt
 
   session     Session?
+  matchSuggestions MatchSuggestion[]
 
   @@index([userId, status])
 }
@@ -144,4 +146,17 @@ model AuthSession {
   userId       String   @db.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MatchSuggestion {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  requestId String   @db.ObjectId
+  mentorId  String   @db.ObjectId
+  score     Float
+  status    String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  reasoning String?
+  createdAt DateTime @default(now())
+
+  request   HelpRequest @relation(fields: [requestId], references: [id])
+  mentor    User        @relation(fields: [mentorId], references: [id])
 }
