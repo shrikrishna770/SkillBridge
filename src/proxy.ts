@@ -1,23 +1,34 @@
 import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-export default withAuth({
-  pages: {
-    signIn: "/login",
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const isAuth = !!token;
+    const isOnboardingPage = req.nextUrl.pathname.startsWith("/onboarding");
+
+    // Redirect to onboarding if not onboarded
+    if (isAuth && !token.isOnboarded && !isOnboardingPage) {
+      return NextResponse.redirect(new URL("/onboarding", req.url));
+    }
+
+    // Prevent access to onboarding if already onboarded
+    if (isAuth && token.isOnboarded && isOnboardingPage) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    return NextResponse.next();
   },
-});
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+    pages: {
+      signIn: "/login",
+    },
+  }
+);
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - login (login page)
-     * - signup (signup page)
-     * - onboarding (onboarding page - optional, but let's keep it protected normally)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!api|login|signup|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/", "/onboarding", "/dashboard/:path*"],
 };

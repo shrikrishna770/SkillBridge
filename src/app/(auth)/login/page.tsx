@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -24,7 +25,11 @@ export default function LoginPage() {
       });
       if (res?.ok) {
         router.push("/");
+      } else {
+        setError("Invalid email or password");
       }
+    } catch (err) {
+      setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -42,6 +47,12 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
           <p className="text-muted-foreground text-sm">Enter your credentials to access SkillBridge</p>
         </div>
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-xl text-sm text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">

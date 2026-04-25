@@ -18,6 +18,13 @@ model User {
   year          Int?
   reputation    Int       @default(0)
   
+  // Onboarding Data
+  canTeach      String[]  @default([])
+  needHelp      String[]  @default([])
+  availability  Json?     // Store schedule as JSON object
+  language      String?   @default("English")
+  isOnboarded   Boolean   @default(false)
+
   skills          SkillLink[]
   requests        HelpRequest[]
   mentorSessions  Session[]    @relation("MentorSessions")
@@ -42,16 +49,37 @@ model SkillLink {
   skill   Skill @relation(fields: [skillId], references: [id])
 }
 
+enum RequestStatus {
+  OPEN
+  MATCHED
+  EXPIRED
+  COMPLETED
+}
+
+enum RequestUrgency {
+  TODAY
+  THIS_WEEK
+  ANYTIME
+}
+
 model HelpRequest {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  topic       String
-  description String
-  status      String   @default("PENDING")
-  createdAt   DateTime @default(now())
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String         @db.ObjectId
+  user        User           @relation(fields: [userId], references: [id])
   
-  user        User     @relation(fields: [userId], references: [id])
+  topic       String
+  context     String         // Max 140 chars context
+  urgency     RequestUrgency @default(ANYTIME)
+  duration    Int            // 20, 30, or 45 min
+  status      RequestStatus  @default(OPEN)
+  
+  expiresAt   DateTime
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
   session     Session?
+
+  @@index([userId, status])
 }
 
 model Session {

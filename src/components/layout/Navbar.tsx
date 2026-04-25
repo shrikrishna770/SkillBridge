@@ -54,6 +54,9 @@ export function Navbar() {
                   <Link href="/dashboard">
                     <Button variant="ghost" size="sm">Dashboard</Button>
                   </Link>
+                  <Link href="/profile">
+                    <Button variant="ghost" size="sm">Profile</Button>
+                  </Link>
                   <Button 
                     variant="outline" 
                     size="sm" 
