@@ -17,6 +17,9 @@ model User {
   college       String?
   year          Int?
   reputation    Int       @default(0)
+  sessionsGiven Int       @default(0)
+  sessionsReceived Int    @default(0)
+  rating        Float     @default(5.0)
   
   // Onboarding Data
   canTeach      String[]  @default([])
