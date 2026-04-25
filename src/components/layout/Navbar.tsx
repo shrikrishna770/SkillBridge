@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Menu, X, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession, signOut } from "next-auth/react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  if (isAuthPage) return null;
 
   const navLinks = [
     { name: "Features", href: "#" },
@@ -41,8 +49,29 @@ export function Navbar() {
               </Link>
             ))}
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm">Sign In</Button>
-              <Button variant="premium" size="sm">Get Started</Button>
+              {session ? (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" size="sm">Dashboard</Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                  >
+                    Log Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm">Sign In</Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button variant="premium" size="sm">Get Started</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -75,8 +104,32 @@ export function Navbar() {
               </Link>
             ))}
             <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
-              <Button variant="outline" className="w-full">Sign In</Button>
-              <Button variant="premium" className="w-full">Get Started</Button>
+              {session ? (
+                <>
+                  <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full">Dashboard</Button>
+                  </Link>
+                  <Button 
+                    variant="premium" 
+                    className="w-full"
+                    onClick={() => {
+                      setIsOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }}
+                  >
+                    Log Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full">Sign In</Button>
+                  </Link>
+                  <Link href="/signup" onClick={() => setIsOpen(false)}>
+                    <Button variant="premium" className="w-full">Get Started</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}

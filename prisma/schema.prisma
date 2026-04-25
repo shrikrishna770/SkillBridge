@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  college       String?
+  year          Int?
+  reputation    Int       @default(0)
+  
+  skills          SkillLink[]
+  requests        HelpRequest[]
+  mentorSessions  Session[]    @relation("MentorSessions")
+  learnerSessions Session[]    @relation("LearnerSessions")
+  accounts        Account[]
+  sessions        AuthSession[]
+}
+
+model Skill {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  name  String @unique
+  links SkillLink[]
+}
+
+model SkillLink {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String @db.ObjectId
+  skillId String @db.ObjectId
+  type    String
+
+  user    User  @relation(fields: [userId], references: [id])
+  skill   Skill @relation(fields: [skillId], references: [id])
+}
+
+model HelpRequest {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  topic       String
+  description String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  session     Session?
+}
+
+model Session {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  requestId String    @unique @db.ObjectId
+  mentorId  String    @db.ObjectId
+  learnerId String    @db.ObjectId
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  status    String    @default("ACTIVE")
+  aiBrief   String?
+  notepad   String?
+  
+  request   HelpRequest @relation(fields: [requestId], references: [id])
+  mentor    User        @relation("MentorSessions", fields: [mentorId], references: [id])
+  learner   User        @relation("LearnerSessions", fields: [learnerId], references: [id])
+  messages  Message[]
+  rating    Rating?
+}
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId String   @db.ObjectId
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+  
+  session   Session @relation(fields: [sessionId], references: [id])
+}
+
+model Rating {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId String  @unique @db.ObjectId
+  value     Int
+  comment   String?
+  
+  session   Session @relation(fields: [sessionId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model AuthSession {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
