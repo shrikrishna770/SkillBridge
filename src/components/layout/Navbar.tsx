@@ -11,12 +11,25 @@ import { useSession, signOut } from "next-auth/react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
 
   const isAuthPage = pathname === "/login" || pathname === "/signup";
-
   if (isAuthPage) return null;
+
+  if (status === "loading") return (
+    <nav className="fixed top-0 w-full h-16 z-50 glass border-b border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-white/5" />
+          <div className="w-24 h-5 bg-white/5 rounded-full" />
+        </div>
+        <div className="hidden md:flex gap-4">
+          {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-8 bg-white/5 rounded-full animate-pulse" />)}
+        </div>
+      </div>
+    </nav>
+  );
 
   const navLinks = session 
     ? [
