@@ -11,7 +11,6 @@ import {
   Clock, Globe, Save, Award, Zap, Star, ShieldCheck, 
   ChevronRight, Calendar
 } from "lucide-react";
-import { DashboardNav } from "@/components/layout/DashboardNav";
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
@@ -105,7 +104,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen pt-24 pb-20 px-4 space-y-8">
-      <DashboardNav />
       
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         

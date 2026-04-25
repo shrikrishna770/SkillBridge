@@ -2,8 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { DashboardNav } from "@/components/layout/DashboardNav";
-import { Sparkles, Users, Award, Zap, Clock, Tag, ChevronRight } from "lucide-react";
+import { Sparkles, Users, Award, Zap, Clock, Tag, ChevronRight, GraduationCap, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { getMyOpenRequests } from "@/actions/requests";
@@ -34,7 +33,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 space-y-8">
-      <DashboardNav />
       
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -178,5 +176,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-import { GraduationCap, BookOpen } from "lucide-react";

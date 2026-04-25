@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 import { Menu, X, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,33 +18,44 @@ export function Navbar() {
 
   if (isAuthPage) return null;
 
-  const navLinks = [
-    { name: "Features", href: "#" },
-    { name: "Courses", href: "#" },
-    { name: "Pricing", href: "#" },
-    { name: "Resources", href: "#" },
-  ];
+  const navLinks = session 
+    ? [
+        { name: "Home", href: "/" },
+        { name: "Dashboard", href: "/dashboard" },
+        { name: "Profile", href: "/profile" },
+        { name: "New Request", href: "/requests/new" },
+      ]
+    : [
+        { name: "Home", href: "/" },
+        { name: "Features", href: "#" },
+        { name: "About", href: "#" },
+      ];
 
   return (
     <nav className="fixed top-0 w-full z-50 glass border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg premium-gradient flex items-center justify-center">
               <Sparkles className="text-white w-5 h-5" />
             </div>
             <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
               SkillBridge
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className={cn(
+                  "text-sm font-medium transition-all px-5 py-2.5 rounded-full",
+                  pathname === link.href 
+                    ? "bg-primary text-white shadow-lg shadow-primary/30" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                )}
               >
                 {link.name}
               </Link>
@@ -51,12 +63,6 @@ export function Navbar() {
             <div className="flex items-center gap-4">
               {session ? (
                 <>
-                  <Link href="/dashboard">
-                    <Button variant="ghost" size="sm">Dashboard</Button>
-                  </Link>
-                  <Link href="/profile">
-                    <Button variant="ghost" size="sm">Profile</Button>
-                  </Link>
                   <Button 
                     variant="outline" 
                     size="sm" 

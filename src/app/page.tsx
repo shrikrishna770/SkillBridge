@@ -89,33 +89,6 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <nav className="flex items-center gap-4 mb-12 overflow-x-auto pb-2">
-        <button 
-          onClick={() => setView("dashboard")}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-            view === "dashboard" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          Dashboard
-        </button>
-        <button 
-          onClick={() => setView("profile")}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-            view === "profile" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          Profile
-        </button>
-        <button 
-          onClick={() => setView("request")}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-            view === "request" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          New Request
-        </button>
-      </nav>
-
       <motion.div
         key={view}
         initial={{ opacity: 0, x: 10 }}

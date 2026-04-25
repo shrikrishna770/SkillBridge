@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { DashboardNav } from "@/components/layout/DashboardNav";
 import { Button } from "@/components/ui/Button";
 import { 
   Video, Mic, MessageSquare, 
