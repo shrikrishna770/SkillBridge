@@ -50,6 +50,14 @@ export default function ProfilePage() {
     setSearch("");
   };
 
+  const handleRemoveTag = (tag: string, type: 'learn' | 'teach') => {
+    if (type === 'teach') {
+      setCanTeach(canTeach.filter(t => t !== tag));
+    } else {
+      setNeedHelp(needHelp.filter(t => t !== tag));
+    }
+  };
+
   const handleToggleTime = (day: string, slot: string) => {
     const current = availability[day] || [];
     if (current.includes(slot)) {
@@ -317,7 +325,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="pt-6 flex flex-col md:flex-row gap-4">
-              <Button size="xl" className="flex-1 font-bold h-16" variant="premium" onClick={handleSave} disabled={isLoading}>
+              <Button size="lg" className="flex-1 font-bold h-16" variant="premium" onClick={handleSave} disabled={isLoading}>
                 {isLoading ? "Saving Settings..." : "Save All Changes"} <Save className="ml-2 w-5 h-5" />
               </Button>
               {saveStatus && (

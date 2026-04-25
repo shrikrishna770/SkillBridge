@@ -123,7 +123,7 @@ export async function findMatchesForRequest(requestId: string) {
 
         // Parse result
         const content = response.content[0].type === 'text' ? response.content[0].text : '';
-        const result = JSON.parse(content.match(/\{.*\}/s)?.[0] || "{}");
+        const result = JSON.parse(content.match(/\{[\s\S]*\}/)?.[0] || "{}");
         
         if (result.rankedIds) {
           top5.sort((a, b) => result.rankedIds.indexOf(a.mentor.id) - result.rankedIds.indexOf(b.mentor.id));
