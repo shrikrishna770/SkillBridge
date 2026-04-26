@@ -43,7 +43,7 @@
      if (sessionDetail.aiBrief) return { success: true, brief: JSON.parse(sessionDetail.aiBrief) };
  
      // Collect mentor's past work
-     const pastSummaries = sessionDetail.mentor.mentorSessions.map(s => s.summary).join("\n---\n");
+     const pastSummaries = (sessionDetail.mentor.mentorSessions as any[]).map(s => s.summary || "").join("\n---\n");
  
      const prompt = `
        As an AI coaching assistant for SkillBridge, generate a personalized session brief.
