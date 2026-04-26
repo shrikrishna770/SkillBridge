@@ -43,9 +43,16 @@ export async function createHelpRequest(data: {
       };
     }
 
-    // 2. Set Expiration (48 hours from now)
+    // 2. Set Expiration based on urgency
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 48);
+    if (data.urgency === "TODAY") {
+      expiresAt.setHours(23, 59, 59, 999);
+    } else if (data.urgency === "THIS_WEEK") {
+      expiresAt.setDate(expiresAt.getDate() + 7);
+    } else {
+      // ANYTIME: active effectively forever
+      expiresAt.setFullYear(expiresAt.getFullYear() + 100);
+    }
 
     // 3. Create Request
     const request = await prisma.helpRequest.create({

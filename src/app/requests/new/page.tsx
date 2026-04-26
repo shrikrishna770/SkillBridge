@@ -34,6 +34,7 @@ export default function NewRequestPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
 
   // Form State
@@ -62,8 +63,9 @@ export default function NewRequestPage() {
     });
 
     if (res.success) {
-      router.push("/dashboard");
-      router.refresh();
+      setIsSuccess(true);
+      setIsLoading(false);
+      window.location.href = "/dashboard#broadcasts";
     } else {
       setError(res.error || "Failed to post request");
       setIsLoading(false);
@@ -289,9 +291,9 @@ export default function NewRequestPage() {
                       variant="premium" 
                       className="flex-[2] h-14" 
                       onClick={handleCreate}
-                      disabled={isLoading}
+                      disabled={isLoading || isSuccess}
                     >
-                      {isLoading ? "Broadcasting..." : "Broadcast Request"} <ArrowRight className="ml-2 w-5 h-5" />
+                      {isSuccess ? "Confirmed" : isLoading ? "Broadcasting..." : "Broadcast Request"} <ArrowRight className="ml-2 w-5 h-5" />
                     </Button>
                   </div>
                 </div>
