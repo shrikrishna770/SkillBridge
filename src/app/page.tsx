@@ -1,19 +1,20 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { 
   User, MessageSquare, Zap, LayoutDashboard, 
   Settings, Clock, Tag, Sparkles, ArrowRight,
-  TrendingUp, Star, ShieldCheck, Heart
+  TrendingUp, Star, ShieldCheck, Heart, X
 } from "lucide-react";
 import { getMyOpenRequests } from "@/actions/requests";
 import { getActiveSessions } from "@/actions/matches";
 import { getUserMetrics } from "@/actions/user";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SessionCard } from "@/components/session/SessionCard";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -31,12 +32,15 @@ export default function Home() {
     }
   }, [session]);
 
+  const [activeSummary, setActiveSummary] = useState<string | null>(null);
+ 
   const stats = [
-    { name: "Taught", value: metrics?.sessionsGiven || 0 },
-    { name: "Learned", value: metrics?.sessionsReceived || 0 },
+    { name: "Skills Taught", value: metrics?.sessionsGiven || 0, icon: TrendingUp },
+    { name: "Skills Learned", value: metrics?.sessionsReceived || 0, icon: ShieldCheck },
+    { name: "Reputation", value: metrics?.reputation?.toFixed(1) || "5.0", icon: Star },
   ];
 
-  if (status === "loading") return <HomeSkeleton />;
+  if (status === "loading") return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   // LOGGED OUT LANDING PAGE
   if (!session) {
@@ -136,6 +140,53 @@ export default function Home() {
   // LOGGED IN DASHBOARD
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
+      {/* AI Summary Modal */}
+      <AnimatePresence>
+        {activeSummary && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveSummary(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-zinc-950 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-purple-500" />
+              <button 
+                onClick={() => setActiveSummary(null)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 transition-colors"
+              >
+                <X className="w-6 h-6 text-muted-foreground" />
+              </button>
+              
+              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
+                <div className="space-y-2">
+                  <div className="inline-flex px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black tracking-widest uppercase mb-2">
+                    AI Insights Report
+                  </div>
+                  <h3 className="text-3xl font-bold">Session Summary</h3>
+                </div>
+                
+                <div className="prose prose-invert max-w-none">
+                  <div className="text-zinc-300 whitespace-pre-wrap leading-relaxed font-medium">
+                    {activeSummary}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-8 pt-6 border-t border-white/5 flex justify-end">
+                <Button variant="premium" onClick={() => setActiveSummary(null)}>Close Insights</Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
@@ -160,23 +211,12 @@ export default function Home() {
                 <MessageSquare className="w-5 h-5 text-primary" /> Current Activity
               </h3>
               
-              {activeSessions.length > 0 ? (
-                activeSessions.map((s) => (
-                  <div key={s.id} className="p-6 glass rounded-2xl border border-white/5 flex justify-between items-center hover:bg-white/5 transition-all shadow-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl premium-gradient flex items-center justify-center text-white font-bold">
-                        {s.request.topic.substring(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-lg">{s.request.topic}</h4>
-                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">
-                          {s.mentorId === user.id ? `Learner: ${s.learner.name}` : `Mentor: ${s.mentor.name}`}
-                        </p>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="ghost" onClick={() => router.push(`/session/${s.id}`)}>Enter Room</Button>
-                  </div>
-                ))
+               {activeSessions.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+                  {activeSessions.map((s) => (
+                    <SessionCard key={s.id} session={s} userId={user.id} />
+                  ))}
+                </div>
               ) : (
                 <div className="p-20 text-center glass rounded-[2.5rem] border border-white/5 text-muted-foreground flex flex-col items-center gap-4">
                   <div className="p-4 rounded-full bg-white/5">
@@ -211,7 +251,7 @@ export default function Home() {
 
             <div className="p-8 glass rounded-[2.5rem] border border-white/5">
               <h3 className="font-bold mb-6 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" /> Resources
+                <Sparkles className="w-4 h-4 text-primary" /> Reasources
               </h3>
               <div className="space-y-3">
                 {[

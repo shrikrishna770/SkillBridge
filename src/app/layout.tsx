@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/Providers";
+import { MainContent } from "@/components/layout/MainContent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,9 +23,9 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <Providers>
           <Navbar />
-          <main className="flex-1 pt-16">
+          <MainContent>
             {children}
-          </main>
+          </MainContent>
           <Footer />
         </Providers>
       </body>

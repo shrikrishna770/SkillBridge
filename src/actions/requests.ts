@@ -3,7 +3,7 @@
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { RequestUrgency } from "@prisma/client";
+import { RequestUrgency, RequestStatus } from "@prisma/client";
 import { findMatchesForRequest } from "./matches";
 
 export async function createHelpRequest(data: {
@@ -83,4 +83,21 @@ export async function getMyOpenRequests() {
       createdAt: "desc"
     }
   });
+}
+export async function cancelHelpRequest(requestId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false };
+
+  try {
+    await prisma.helpRequest.update({
+      where: { 
+        id: requestId,
+        userId: session.user.id
+      },
+      data: { status: RequestStatus.EXPIRED }
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
 }

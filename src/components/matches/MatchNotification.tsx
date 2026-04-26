@@ -5,13 +5,15 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Clock, Check, X, Sparkles, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { getMatchesForRequest, respondToMatch } from "@/actions/matches";
+import { getMatchesForRequest, learnerAcceptMatch, respondToMatch } from "@/actions/matches";
+import { useRouter } from "next/navigation";
 
 interface MatchNotificationProps {
   requestId: string;
 }
 
 export function MatchNotification({ requestId }: MatchNotificationProps) {
+  const router = useRouter();
   const [matches, setMatches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -22,15 +24,24 @@ export function MatchNotification({ requestId }: MatchNotificationProps) {
   const loadMatches = async () => {
     setIsLoading(true);
     const res = await getMatchesForRequest(requestId);
-    setMatches(res.filter((m: any) => m.status === "PENDING"));
+    // Only show mentors who have ALREADY accepted
+    setMatches(res.filter((m: any) => m.status === "MENTOR_ACCEPTED"));
     setIsLoading(false);
   };
 
-  const handleResponse = async (matchId: string, response: "ACCEPTED" | "DECLINED") => {
-    const res = await respondToMatch(matchId, response);
-    if (res.success) {
-      loadMatches();
+  const handleStartSession = async (matchId: string) => {
+    setIsLoading(true);
+    const res = await learnerAcceptMatch(matchId);
+    if (res.success && res.sessionId) {
+      router.push(`/session/${res.sessionId}`);
+    } else {
+      setIsLoading(false);
     }
+  };
+
+  const handleDecline = async (matchId: string) => {
+    await respondToMatch(matchId, "DECLINED");
+    loadMatches();
   };
 
   if (isLoading || matches.length === 0) return null;
@@ -80,16 +91,17 @@ export function MatchNotification({ requestId }: MatchNotificationProps) {
 
         <div className="flex gap-2">
           <Button 
-            className="flex-1 h-10 text-xs font-bold gap-2" 
+            className="flex-1 h-10 text-xs font-black gap-2 uppercase tracking-widest" 
             variant="premium"
-            onClick={() => handleResponse(currentMatch.id, "ACCEPTED")}
+            onClick={() => handleStartSession(currentMatch.id)}
+            disabled={isLoading}
           >
-            <Check className="w-4 h-4" /> Accept Match
+            <Sparkles className="w-4 h-4" /> {isLoading ? "Preparing..." : "Start Live Session"}
           </Button>
           <Button 
             className="h-10 px-4 text-xs font-bold" 
             variant="ghost"
-            onClick={() => handleResponse(currentMatch.id, "DECLINED")}
+            onClick={() => handleDecline(currentMatch.id)}
           >
             <X className="w-4 h-4" />
           </Button>

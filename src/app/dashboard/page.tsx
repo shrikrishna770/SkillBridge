@@ -2,15 +2,17 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Sparkles, Users, Award, Zap, Clock, Tag, ChevronRight, GraduationCap, BookOpen } from "lucide-react";
+import { Sparkles, Users, Award, Zap, Clock, Tag, ChevronRight, GraduationCap, BookOpen, Radio } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import { getMyOpenRequests } from "@/actions/requests";
+import { getMyOpenRequests, cancelHelpRequest } from "@/actions/requests";
 import { MatchNotification } from "@/components/matches/MatchNotification";
 import { getIncomingMatches, respondToMatch, getActiveSessions } from "@/actions/matches";
 import { SessionCard } from "@/components/session/SessionCard";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [activeRequests, setActiveRequests] = useState<any[]>([]);
   const [incomingMatches, setIncomingMatches] = useState<any[]>([]);
@@ -111,7 +113,13 @@ export default function DashboardPage() {
                         <Button 
                           className="flex-1 h-9 text-xs font-bold" 
                           variant="ghost"
-                          onClick={() => respondToMatch(match.id, "DECLINED").then(() => setIncomingMatches(prev => prev.filter(m => m.id !== match.id)))}
+                          onClick={async (e) => {
+                            const btn = e.currentTarget;
+                            btn.disabled = true;
+                            btn.innerText = "Declining...";
+                            await respondToMatch(match.id, "DECLINED");
+                            setIncomingMatches(prev => prev.filter(m => m.id !== match.id));
+                          }}
                         >
                           Decline
                         </Button>
@@ -123,20 +131,20 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Active Requests Section */}
+        {/* Pending Broadcasts Section */}
         <div className="space-y-4">
           <h2 className="text-xl font-bold flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary" /> My Active Broadcasts
+            <Radio className="w-5 h-5 text-primary animate-pulse" /> Pending Broadcasts
           </h2>
           
           {activeRequests.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeRequests.map(req => (
-                <div key={req.id} className="glass p-6 rounded-2xl border border-white/5 space-y-4 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-2">
-                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                      {req.urgency}
-                    </span>
+                <div key={req.id} className="glass p-6 rounded-2xl border border-primary/10 space-y-4 relative overflow-hidden group shadow-lg shadow-primary/5">
+                  <div className="absolute top-0 right-0 p-3">
+                    <div className="flex items-center gap-2 text-[8px] font-black uppercase text-primary tracking-widest px-2 py-1 bg-primary/10 rounded-full">
+                      <span className="w-1 h-1 rounded-full bg-primary animate-ping" /> Scanning
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -151,9 +159,29 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold uppercase">
                       <Clock className="w-3 h-3" /> {req.duration} mins
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
-                      Expires: {new Date(req.expiresAt).toLocaleDateString()}
-                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 text-[10px] uppercase font-black tracking-widest text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                      onClick={async (e) => {
+                        const btn = e.currentTarget;
+                        const originalText = btn.innerText;
+                        btn.disabled = true;
+                        btn.innerText = "Cancelling...";
+                        
+                        const res = await cancelHelpRequest(req.id);
+                        if (res.success) {
+                          setActiveRequests(prev => prev.filter(r => r.id !== req.id));
+                          router.refresh();
+                        } else {
+                          btn.disabled = false;
+                          btn.innerText = originalText;
+                          alert("Failed to cancel. Please restart your server to apply the new database rules.");
+                        }
+                      }}
+                    >
+                      Cancel
+                    </Button>
                   </div>
                 </div>
               ))}

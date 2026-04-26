@@ -41,6 +41,8 @@ export default function NewRequestPage() {
   const [context, setContext] = useState("");
   const [urgency, setUrgency] = useState("TODAY");
   const [duration, setDuration] = useState(30);
+  const [preferredDays, setPreferredDays] = useState<string[]>([]);
+  const [customAvailability, setCustomAvailability] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -201,6 +203,56 @@ export default function NewRequestPage() {
                       </button>
                     ))}
                   </div>
+
+                  {/* Conditional Scheduling Sections */}
+                  <AnimatePresence mode="wait">
+                    {urgency === "THIS_WEEK" && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3"
+                      >
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Select Available Days</p>
+                        <div className="flex flex-wrap gap-2">
+                          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => (
+                            <button
+                              key={day}
+                              onClick={() => {
+                                const days = (preferredDays as string[]) || [];
+                                setPreferredDays(days.includes(day) ? days.filter(d => d !== day) : [...days, day]);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${
+                                (preferredDays as string[])?.includes(day)
+                                  ? "bg-primary border-primary text-white"
+                                  : "bg-black/20 border-white/10 text-muted-foreground hover:border-white/30"
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {urgency === "ANYTIME" && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3"
+                      >
+                        <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Availability Notes</p>
+                        <input 
+                          type="text"
+                          placeholder="e.g. Free on weekends / Mornings only"
+                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-1 focus:ring-green-400/50"
+                          value={customAvailability}
+                          onChange={(e) => setCustomAvailability(e.target.value)}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-3">

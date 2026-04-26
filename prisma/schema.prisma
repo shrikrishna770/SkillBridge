@@ -58,6 +58,7 @@ enum RequestStatus {
   MATCHED
   EXPIRED
   COMPLETED
+  CANCELLED
 }
 
 enum RequestUrgency {
@@ -96,6 +97,7 @@ model Session {
   endTime   DateTime?
   status    String    @default("ACTIVE")
   aiBrief   String?
+  summary   String?
   notepad   String?
   
   request   HelpRequest @relation(fields: [requestId], references: [id])

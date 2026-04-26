@@ -15,7 +15,9 @@ export function Navbar() {
   const pathname = usePathname();
 
   const isAuthPage = pathname === "/login" || pathname === "/signup";
-  if (isAuthPage) return null;
+  const isMeetingPage = pathname?.startsWith("/session/");
+  
+  if (isAuthPage || isMeetingPage) return null;
 
   if (status === "loading") return (
     <nav className="fixed top-0 w-full h-16 z-50 glass border-b border-white/5">
