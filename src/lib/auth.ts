@@ -19,7 +19,6 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log("Auth: Missing credentials");
           return null;
         }
         
@@ -28,24 +27,15 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.password) {
-          console.log(`Auth: User not found: ${credentials.email}`);
           return null;
         }
 
         const isValid = await compare(credentials.password, user.password);
-        
-        // DEV ONLY: Fallback for easy testing if hashing is being weird
-        if (!isValid && process.env.NODE_ENV !== "production" && credentials.password === "password") {
-          console.log("Auth: Using dev fallback password");
-          return user;
-        }
 
         if (!isValid) {
-          console.log(`Auth: Invalid password for ${credentials.email}`);
           return null;
         }
 
-        console.log(`Auth: Success for ${credentials.email}`);
         return user;
       },
     }),
@@ -58,13 +48,13 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
-        token.isOnboarded = (user as any).isOnboarded;
-        token.college = (user as any).college;
-        token.year = (user as any).year;
-        token.canTeach = (user as any).canTeach;
-        token.needHelp = (user as any).needHelp;
-        token.availability = (user as any).availability;
-        token.language = (user as any).language;
+        token.isOnboarded = user.isOnboarded;
+        token.college = user.college;
+        token.year = user.year;
+        token.canTeach = user.canTeach;
+        token.needHelp = user.needHelp;
+        token.availability = user.availability;
+        token.language = user.language;
       }
       if (trigger === "update" && session) {
         // Handle partial or full updates
@@ -81,13 +71,13 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        (session.user as any).isOnboarded = token.isOnboarded;
-        (session.user as any).college = token.college;
-        (session.user as any).year = token.year;
-        (session.user as any).canTeach = token.canTeach;
-        (session.user as any).needHelp = token.needHelp;
-        (session.user as any).availability = token.availability;
-        (session.user as any).language = token.language;
+        session.user.isOnboarded = token.isOnboarded;
+        session.user.college = token.college;
+        session.user.year = token.year;
+        session.user.canTeach = token.canTeach;
+        session.user.needHelp = token.needHelp;
+        session.user.availability = token.availability;
+        session.user.language = token.language;
       }
       return session;
     },
