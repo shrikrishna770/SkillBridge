@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import {
   Video, Mic, MessageSquare,
@@ -16,7 +18,7 @@ import { generateSessionBrief, requestMidSessionHelp, generateSessionSummary } f
 export default function SessionRoom() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params.id as string;
+  const sessionId = params?.id as string;
   const [jitsiLoaded, setJitsiLoaded] = useState(false);
   const [sessionData, setSessionData] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
