@@ -13,7 +13,7 @@ import {
   X, ArrowRight
 } from "lucide-react";
 import { getSessionDetails } from "@/actions/matches";
-import { generateSessionBrief, requestMidSessionHelp, generateSessionSummary } from "@/actions/sessions";
+import { generateSessionBrief, requestMidSessionHelp, generateSessionSummary, updateNotepad } from "@/actions/sessions";
 
 export default function SessionRoom() {
   const params = useParams();
@@ -30,7 +30,7 @@ export default function SessionRoom() {
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const { data: session } = useSession();
-  const user = session?.user as any;
+  const user = session?.user;
   const isMentor = sessionData?.mentorId === user?.id;
 
   useEffect(() => {
@@ -278,6 +278,12 @@ export default function SessionRoom() {
               <textarea
                 className="flex-1 w-full bg-transparent border-none outline-none text-sm resize-none text-zinc-400 leading-relaxed font-mono"
                 placeholder="Type notes here... they'll be saved to the session history."
+                defaultValue={sessionData?.notepad || ""}
+                onBlur={async (e) => {
+                  if (sessionId) {
+                    await updateNotepad(sessionId, e.target.value);
+                  }
+                }}
               />
             </div>
           </div>
