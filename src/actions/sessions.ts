@@ -49,8 +49,8 @@
        As an AI coaching assistant for SkillBridge, generate a personalized session brief.
        
        CONTEXT:
-       Topic: ${sessionDetail.request.topic}
-       Learner Note: "${sessionDetail.request.context}"
+       Topic: ${(sessionDetail.request as any).topic}
+       Learner Note: "${(sessionDetail.request as any).context}"
        Mentor: ${sessionDetail.mentor.name}
        Learner: ${sessionDetail.learner.name}
        Mentor's Past Feedback Style: ${pastSummaries || "No previous history."}
@@ -80,7 +80,7 @@
      
      await prisma.session.update({
        where: { id: sessionId },
-       data: { aiBrief: briefJson }
+       data: { aiBrief: briefJson } as any
      });
  
      return { success: true, brief: JSON.parse(briefJson) };
@@ -163,7 +163,7 @@
        data: { 
          summary: summary.trim(),
          status: "COMPLETED"
-       }
+       } as any
      });
  
      return { success: true, summary: summary.trim() };
