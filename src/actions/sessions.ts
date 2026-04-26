@@ -43,14 +43,14 @@
      if (sessionDetail.aiBrief) return { success: true, brief: JSON.parse(sessionDetail.aiBrief) };
  
      // Collect mentor's past work
-     const pastSummaries = (sessionDetail.mentor.mentorSessions as any[]).map(s => s.summary || "").join("\n---\n");
+     const pastSummaries = sessionDetail.mentor.mentorSessions.map(s => s.summary || "").join("\n---\n");
  
      const prompt = `
        As an AI coaching assistant for SkillBridge, generate a personalized session brief.
        
        CONTEXT:
-       Topic: ${(sessionDetail.request as any).topic}
-       Learner Note: "${(sessionDetail.request as any).context}"
+       Topic: ${sessionDetail.request?.topic}
+       Learner Note: "${sessionDetail.request?.context}"
        Mentor: ${sessionDetail.mentor.name}
        Learner: ${sessionDetail.learner.name}
        Mentor's Past Feedback Style: ${pastSummaries || "No previous history."}
@@ -80,7 +80,7 @@
      
      await prisma.session.update({
        where: { id: sessionId },
-       data: { aiBrief: briefJson } as any
+       data: { aiBrief: briefJson }
      });
  
      return { success: true, brief: JSON.parse(briefJson) };
@@ -137,7 +137,7 @@
        },
      });
  
-     if (!sessionDetail || ((sessionDetail as any).summary && sessionDetail.status === "COMPLETED")) return { success: true };
+     if (!sessionDetail || (sessionDetail.summary && sessionDetail.status === "COMPLETED")) return { success: true };
  
      const chatTranscript = sessionDetail.messages
        .map(m => `${m.senderId === sessionDetail.mentorId ? "Mentor" : "Learner"}: ${m.content}`)
@@ -158,13 +158,28 @@
  
      const summary = await runAI(prompt, "Professional educational analyst.");
  
-     await prisma.session.update({
-       where: { id: sessionId },
-       data: { 
-         summary: summary.trim(),
-         status: "COMPLETED"
-       } as any
-     });
+     await prisma.$transaction([
+       prisma.session.update({
+         where: { id: sessionId },
+         data: { 
+           summary: summary.trim(),
+           status: "COMPLETED"
+         }
+       }),
+       prisma.user.update({
+         where: { id: sessionDetail.mentorId },
+         data: {
+           sessionsGiven: { increment: 1 },
+           reputation: { increment: 10 }
+         }
+       }),
+       prisma.user.update({
+         where: { id: sessionDetail.learnerId },
+         data: {
+           sessionsReceived: { increment: 1 }
+         }
+       })
+     ]);
  
      return { success: true, summary: summary.trim() };
    } catch (error) {

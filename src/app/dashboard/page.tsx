@@ -7,6 +7,7 @@
  import { useState, useEffect } from "react";
  import { Button } from "@/components/ui/Button";
  import { getMyOpenRequests, cancelHelpRequest } from "@/actions/requests";
+ import { getUserMetrics } from "@/actions/user";
  import { MatchNotification } from "@/components/matches/MatchNotification";
  import { getIncomingMatches, getActiveSessions, respondToMatch, getMentorPendingOffers } from "@/actions/matches";
  import { SessionCard } from "@/components/session/SessionCard";
@@ -18,6 +19,7 @@
    const [incomingMatches, setIncomingMatches] = useState<any[]>([]);
    const [activeSessions, setActiveSessions] = useState<any[]>([]);
    const [mentorOffers, setMentorOffers] = useState<any[]>([]);
+   const [metrics, setMetrics] = useState<any>(null);
    
    const user = session?.user as any;
  
@@ -27,13 +29,14 @@
        getIncomingMatches().then(setIncomingMatches);
        getActiveSessions().then(setActiveSessions);
        getMentorPendingOffers().then(setMentorOffers);
+       getUserMetrics().then(setMetrics);
      }
    }, [session]);
  
    const stats = [
-     { name: "Sessions Given", value: user?.sessionsGiven || 0, icon: GraduationCap },
-     { name: "Sessions Received", value: user?.sessionsReceived || 0, icon: BookOpen },
-     { name: "Reputation", value: user?.reputation || 0, icon: Award },
+     { name: "Sessions Given", value: metrics?.sessionsGiven ?? user?.sessionsGiven ?? 0, icon: GraduationCap },
+     { name: "Sessions Received", value: metrics?.sessionsReceived ?? user?.sessionsReceived ?? 0, icon: BookOpen },
+     { name: "Reputation", value: metrics?.reputation ?? user?.reputation ?? 0, icon: Award },
    ];
  
    return (
@@ -167,7 +170,7 @@
          )}
  
          {/* 4. Pending Broadcasts Section */}
-         <div className="space-y-4">
+         <div id="broadcasts" className="space-y-4">
            <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-widest">
              <Radio className="w-5 h-5 text-primary animate-pulse" /> My Broadcasts
            </h2>
