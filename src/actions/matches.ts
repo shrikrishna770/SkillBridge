@@ -14,12 +14,19 @@
    });
    if (!mentor) return [];
  
-   // 2. LIVE SCAN: Find all OPEN help requests that match this mentor's skills
-   // We search for requests where the topic is in the mentor's canTeach array
+   // 2. Find IDs of requests this mentor has already interacted with
+   const interactions = await prisma.matchSuggestion.findMany({
+     where: { mentorId: session.user.id },
+     select: { requestId: true }
+   });
+   const interactedRequestIds = interactions.map(i => i.requestId);
+ 
+   // 3. LIVE SCAN: Find all OPEN help requests that match this mentor's skills
    const allOpenRequests = await prisma.helpRequest.findMany({
      where: { 
        status: "OPEN",
        expiresAt: { gt: new Date() },
+       id: { notIn: interactedRequestIds }, // Don't show if already interacted
        userId: { not: session.user.id } // Can't mentor yourself
      },
      include: { user: true }
@@ -168,6 +175,23 @@
      },
      orderBy: {
        startTime: "desc"
+     }
+   });
+ }
+ 
+ export async function getMentorPendingOffers() {
+   const session = await getServerSession(authOptions);
+   if (!session?.user?.id) return [];
+ 
+   return await prisma.matchSuggestion.findMany({
+     where: { 
+       mentorId: session.user.id,
+       status: "MENTOR_ACCEPTED"
+     },
+     include: { 
+       request: {
+         include: { user: true }
+       }
      }
    });
  }

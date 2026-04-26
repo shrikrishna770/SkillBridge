@@ -137,7 +137,7 @@
        },
      });
  
-     if (!sessionDetail || (sessionDetail.summary && sessionDetail.status === "COMPLETED")) return { success: true };
+     if (!sessionDetail || ((sessionDetail as any).summary && sessionDetail.status === "COMPLETED")) return { success: true };
  
      const chatTranscript = sessionDetail.messages
        .map(m => `${m.senderId === sessionDetail.mentorId ? "Mentor" : "Learner"}: ${m.content}`)
